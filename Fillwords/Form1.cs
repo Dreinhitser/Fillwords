@@ -12,8 +12,7 @@ namespace Fillwords
         List<Label> letters;
         List<Label> markedLetters;
 
-        int prevLetterNumber = -1;
-        int prevWordNumber = -1;
+        bool isReset = true;
         int sequenceSum = 0;
 
         Color currentColor = Color.Green;
@@ -34,7 +33,7 @@ namespace Fillwords
             Random rand = new Random();
             currentColor = Color.FromArgb(rand.Next(0, 255), rand.Next(0, 255), rand.Next(0, 255));        
         }
-        public void ParseName(String name, out int wordNumber, out int letterNumber)
+        public void ParseName(string name, out int wordNumber, out int letterNumber)
         {
             string[] strings = name.Split('_');
             wordNumber = Convert.ToInt32(strings[1]);
@@ -48,8 +47,7 @@ namespace Fillwords
                 item.BackColor = Color.White;
 
             }
-            prevLetterNumber = -1;
-            prevWordNumber = -1;
+            isReset = true;
             sequenceSum = 0;
             markedLetters.Clear();
         }
@@ -90,14 +88,20 @@ namespace Fillwords
             return size;
         }
 
-        public void isInSingleWord()
+        public bool isInSingleWord()
         {
-            foreach (var item in markedLetters)
+            for (int i = 0; i < markedLetters.Count; i++)
             {
-                ParseName(item.Name, out int wNumber, out int lNumber);
+                ParseName(markedLetters[i].Name, out int wNumber1, out int lNumber1);
+                for (int j = i; j < markedLetters.Count; j++)
+                {
+                    ParseName(markedLetters[j].Name, out int wNumber2, out int lNumber2);
 
-                if ()
+                    if (numsMatrix[wNumber1, lNumber1] != numsMatrix[wNumber2, lNumber2])
+                        return false;
+                }
             }
+            return true;
         }
 
         public void Letter_Click(object? sender, EventArgs e)
@@ -110,29 +114,23 @@ namespace Fillwords
             ParseName(label.Name, out int wordNumber, out int letterNumber);
 
             richTextBox1.Text += label.Text + ": " + wordNumber + " " + letterNumber + "\n";
-            textBoxWord.Text = prevWordNumber.ToString();
-            textBoxLetter.Text = prevLetterNumber.ToString();
+            textBoxWord.Text = isReset.ToString();
 
             sequenceSum++;
 
-            if (prevLetterNumber == -1 && prevWordNumber == -1)
+            if (isReset)
             {
-                prevLetterNumber = letterNumber;
-                prevWordNumber = wordNumber;
                 label.BackColor = currentColor;
                 markedLetters.Add(label);
             }
-            else if (prevWordNumber == wordNumber && isInSingleWord())
+            else if (isInSingleWord())
             {
-                prevLetterNumber = letterNumber;
-                prevWordNumber = wordNumber;
                 label.BackColor = currentColor;
                 markedLetters.Add(label);
 
                 if (IsLetterLast(label) && sequenceSum == GetWordLength(label))
                 {
-                    prevLetterNumber = -1;
-                    prevWordNumber = -1;
+                    isReset = true;
                     sequenceSum = 0;
                     markedLetters.Clear();
                     ChangeColor();
@@ -157,7 +155,7 @@ namespace Fillwords
                 {
                     Label label = new Label();
                     label.AutoSize = true;
-                    label.Name = $"{lettersMatrix[i, j]}_{numsMatrix[i, j]}_{j}";
+                    label.Name = $"{lettersMatrix[i, j]}_{i}_{j}";
                     label.Text = lettersMatrix[i, j].ToString();
                     label.Click += new EventHandler(Letter_Click);
                     letters.Add(label);
